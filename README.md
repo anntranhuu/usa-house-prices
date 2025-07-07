@@ -1,5 +1,3 @@
-# usa-house-prices
-
 # 🏠 USA House Price Prediction
 
 ## 📊 Project Overview
