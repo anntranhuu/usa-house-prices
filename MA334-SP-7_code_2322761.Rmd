@@ -1,0 +1,429 @@
+---
+title: "MA334-SP-7 Final Project (2023-2024)"
+output: pdf_document
+author: "Huu Ann Tran (2322761)"
+
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+rm(list = ls())
+
+options(scipen = 999)  # Turns off scientific notation
+options(digits = 3)    # Sets the number of significant digits to 3
+
+library(fastDummies)
+library("MASS")
+```
+
+```{r}
+# Read in the dataset
+HousingData <- read.csv("MA334-SP-7_TRAN_HUU_ANN_2322761.csv")  
+```
+This report aims to investigate the factors affecting house prices in the USA, using a data set sourced from Dr. Kelley Pace, Department of Finance, Louisiana State University.
+
+# 1. Data Exploration
+
+The data set gives information on 856 different houses from the area Baton Rouge, LA, during mid-2005 about ten different attributes; that is to say, it gives 856 observations of ten variables.  The variables are as follows: in terms of continuous data, we have the sale price (in dollars) and the total area (in square feet); for discrete data we have the number of bedrooms, number of bathrooms, the age (in years), and the number of days on the market; and in terms of qualitative data (or more specifically, nominal data) we have whether or not it has a pool, the style of the house, whether or not it has a fireplace, as well as whether it is on the waterfront.
+
+
+```{r}
+attach(HousingData)
+
+sortedprices <- sort(HousingData$price, decreasing = FALSE) #sort prices in ascending order
+
+#sales statistics
+meanprice <- round(mean(HousingData$price), 2)
+sdprice <- round(sd(HousingData$price), 2)
+rangeprice <- range(HousingData$price)
+iqrprice <- IQR(HousingData$price)
+medianprice <- median(HousingData$price)
+
+#area statistics
+meanarea <- round(mean(HousingData$sqft), 2)
+meanarea
+sdarea <- round(sd(HousingData$sqft), 2)
+rangearea <- range(HousingData$sqft)
+iqrarea <- IQR(HousingData$sqft)
+medianarea <- median(HousingData$sqft)
+
+#Bedroom statistics
+meanbeds <- mean(HousingData$bedrooms)
+
+#to calculate mode
+bedsfreq <- sort(table(HousingData$bedrooms), decreasing = TRUE) #makes frequency table of beds and sorts in descending order
+modebeds <- as.numeric(names(bedsfreq)[bedsfreq == max(bedsfreq)])
+
+rangebeds <- range(HousingData$bedrooms)
+
+#Bath statistics
+meanbaths <- mean(HousingData$baths)
+
+#to calculate mode
+bathsfreq <- sort(table(HousingData$baths), decreasing = TRUE)
+modebaths <- as.numeric(names(bathsfreq)[bathsfreq == max(bathsfreq)])
+
+rangebaths <- range(HousingData$baths)
+
+#Age statisics
+meanage <- mean(HousingData$age)
+sdage <- sd(HousingData$age)
+rangeage <- range(HousingData$age)
+iqrage <- IQR(HousingData$age)
+medianage <- median(HousingData$age)
+
+#Days on markets statistics
+meandays <- mean(HousingData$dom)
+sddays <- sd(HousingData$dom)
+rangedays <- range(HousingData$dom)
+iqrdays <- IQR(HousingData$dom)
+mediandays <- median(HousingData$dom)
+
+```
+
+The following tables show the descriptive statistics for the housing data with the most relevant statistics for each variable.
+
+Table 1
+
+|                |      Mean      | Standard Deviation |       Range       |    Mode   | Median     |
+|----------------|----------------|--------------------|-------------------|-----------|------------|
+| Price          | `r meanprice`  | `r sdprice`        | `r rangeprice`    |          |`r medianprice`|
+| Area (sqft)    | `r meanarea`   | `r sdarea`         | `r rangearea`     |           |`r medianarea`|
+| Bedrooms       | `r meanbeds`   |                    | `r rangebeds`     |`r modebeds`|           |
+| Bathrooms      | `r meanbaths`  |                    | `r rangebaths`    |`r modebaths`|          |
+| Age (years)     | `r meanage`    | `r sdage`          | `r rangeage`      |          |`r medianage`|
+| Days on market | `r meandays`   | `r sddays`         | `r rangedays`     |           |`r mediandays`|
+
+```{r}
+pool <- HousingData[HousingData$pool==1,] #extracts rows with pool
+pool_freq <- nrow(pool) #number of houses with pool
+
+
+#Frequency of each style
+traditional <- HousingData[HousingData$style==1,]
+traditional_freq <- nrow(traditional)
+
+townhouse <- HousingData[HousingData$style==2,]
+townhouse_freq <- nrow(townhouse)
+
+ranch <- HousingData[HousingData$style==3,]
+ranch_freq <- nrow(ranch)
+
+new_orleans <- HousingData[HousingData$style==4,]
+new_orleans_freq <- nrow(new_orleans)
+
+mobile_home <- HousingData[HousingData$style==5,]
+mobile_home_freq <- nrow(mobile_home)
+
+garden <- HousingData[HousingData$style==6,]
+garden_freq <- nrow(garden)
+
+french <- HousingData[HousingData$style==7,]
+french_freq <- nrow(french)
+
+cottage <- HousingData[HousingData$style==8,]
+cottage_freq <- nrow(cottage)
+
+contemporary <- HousingData[HousingData$style==9,]
+contemporary_freq <- nrow(contemporary)
+
+colonial <- HousingData[HousingData$style==10,]
+colonial_freq <- nrow(colonial)
+
+acadian <- HousingData[HousingData$style==11,]
+acadian_freq <- nrow(acadian)
+
+
+fireplace <- HousingData[HousingData$fireplace==1,]
+fireplace_freq <- nrow(fireplace)
+
+waterfront <- HousingData[HousingData$waterfront==1,]
+waterfront_freq <- nrow(waterfront)
+
+```
+Table 2
+
+| Variable        | Frequency |
+|-----------------|-----------|
+| POOL            | `r pool_freq` |
+|-----------------|-----------|
+| STYLE           |           |
+|   Traditional   | `r traditional_freq` |
+|   Townhouse     | `r townhouse_freq` |
+|   Ranch         | `r ranch_freq` |
+|   New Orleans   | `r new_orleans_freq` |
+|   Mobile Home   | `r mobile_home_freq` |
+|   Garden        | `r garden_freq` |
+|   French        | `r french_freq` |
+|   Cottage       | `r cottage_freq` |
+|   Contemporary  | `r contemporary_freq` |
+|   Colonial      | `r colonial_freq` |
+|   Acadian       | `r acadian_freq` |
+|-----------------|-----------|
+| FIREPLACE       | `r fireplace_freq` |
+| WATERFRONT      | `r waterfront_freq` |
+
+
+
+As shown by Table 1 the mean area of the houses was calculated to be `r meanarea` sqft, with mostly `r modebeds` bedrooms and `r modebaths` bathrooms. At the time of data collection, the houses were `r meanage` years old on average, though it ranges from newly built houses to houses that were 80 years old.  There is also a large range for the number of days the house was on the market (`r rangedays`), but on average houses were on the market for `r meandays` days.  Table 2 shows that out of the 856 houses, `r pool_freq` have a pool, the most common type of house was traditional, just over half of houses have a fireplace, and `r waterfront_freq` are on the waterfront.
+
+
+In terms of sales prices, the mean sales price was calculated to be `r meanprice` USD, however, the large standard deviation (`r sdprice` USD) and range (`r rangeprice`) show that there is a lot of variability in the data. As the median sales price was calculated to be `r medianprice` USD, this suggests the presence of extreme values which are resulting in a significantly higher mean.  To investigate this, a histogram was plotted which can be seen in Figure \ref{fig:fig1}.
+
+```{r fig1, include = TRUE, fig.height=4, fig.width=5, fig.cap="\\label{fig:fig1}Histogram of Sale Price"}
+
+#plot a histogram of the sale prices
+hist(HousingData$price, main = "", xlab = "Sale Price ($)", cex.main = 0.9)
+```
+
+As shown by the histogram, the sale price is positively skewed, meaning that there are in fact extreme values that are making the mean higher than expected.  To this end the median may be a more accurate representation of the average sales price.
+
+## Correlations between variables
+
+```{r plots, echo=FALSE, fig.width=8, fig.height=6, include = TRUE}
+
+#scatter plots of some of the variables
+par(mfrow=c(2,2))
+
+plot(HousingData$sqft, HousingData$price, xlab = "Total Area (sqft)", ylab = "Price ($)", main = "Figure 2: Scatter Plot of Total Area\n Against Sale Price", cex.main = 0.9)
+
+plot(HousingData$bedrooms, HousingData$price, xlab = "Number of Bedrooms", ylab = "Price ($)", main = "Figure 3: Scatter Plot of Number of Bedrooms\n Against Sale Price", cex.main = 0.9)
+
+plot(HousingData$age, HousingData$price, xlab = "Age (years)", ylab = "Price ($)", main = "Figure 4: Scatter Plot of Age Against\n Sale Price", cex.main = 0.9)
+
+plot(HousingData$dom, HousingData$price, xlab = "Days on Market", ylab = "Price ($)", main = "Figure 5: Scatter Plot of Days on Market\n Against Sale Price", cex.main = 0.9)
+
+```
+Figures 2 to 5 determine whether there is any correlation between some of the variables and the sale price.  In general, it is shown from Figures 2 and 3 that there is a positive correlation between the total area and the price, and between the number of bedrooms and price, i.e. the higher the number of bedrooms and the higher the total area, the higher the sale price.  For the age, there is a slight negative correlation, meaning that newer houses tend to be slightly more expensive than older houses, as shown by Figure 4. In contrast, Figure 5 shows that there is no clear correlation between the days on the market and the price.  It is important to note, however, that correlation does not mean causation, and in the case of housing prices it is a range of combined factors that determine the ultimate price.
+
+# 2. Probability, probability distributions and confidence intervals
+
+```{r}
+#Probability of house chosen at random having a pool
+prob_pool <- pool_freq/856
+
+
+#probability house has fireplace
+prob_fireplace <- fireplace_freq/856 
+
+#Probability of house chosen at random having a fireplace given that it has a pool
+fireplace_given_pool <- (prob_fireplace*prob_pool)/prob_pool
+
+```
+Given that the frequency of a property having a pool is `r pool_freq`, the probability that a house chosen at random from the data set has a pool is `r prob_pool`. Similarly, the probability that the property would have a fireplace given that it has a pool is `r fireplace_given_pool`.
+
+```{r}
+#probability that, out of 10 houses chosen at random from data set, at least 3 will have a pool
+AtLeast3pool <- 1-(dbinom(2, size=10, prob=prob_pool)+dbinom(1, size=10, prob=prob_pool)+dbinom(0, size=10, prob=prob_pool))
+```
+
+The probability that, out of 10 houses chosen at random from the data set, at least 3 will have a pool is `r AtLeast3pool`.  This was achieved through the following calculation: as the probability that 3 or more houses have a pool ( \(P(X \geq 3) \) ) and the probability that less than 3 houses have a pool ( \(P(X \leq 2)\) ) add up to 1, the probability that at least 3 houses have a pool is given by \(1 - P(X \leq 2)\) (where X is the random variable "has a pool"). This, in turn is the same as \( 1 - (P(X=2)+P(X=1)+P(X=0))\).
+
+Then, the probability of each event was found using the concept of binomial probability, which can be used when the following are true: (1) "there is a fixed number of independent identical trials" (in this case 10), (2) "each trial results in either "success"  or a "failure"" (having a pool or not having a pool), and (3), "the probability of success is the same for each trial" (`r prob_pool`)(1, p.49). This was calculated using the dbinom() function in R for each event.
+
+```{r}
+#Confidence Interval = xbar +- z*(s/sqrt(n))
+#here xbar = meanprice and s = sdprice
+alpha <- 1-0.95
+p <- 1-(alpha/2)
+z <- qnorm(p=p)
+n <- length(HousingData$price)
+
+lower_interval <- meanprice - z*(sdprice/sqrt(n))
+
+upper_interval <- meanprice + z*(sdprice/sqrt(n))
+
+```
+
+Assuming the data set provides a random sample of houses in the USA, a 95% confidence interval on the mean house price in the USA is (`r lower_interval`, `r upper_interval` USD). Loosely, this means that there is a 95% degree of confidence that the true mean price for the USA lies between these values.
+
+
+# 3. Contingency tables and hypothesis tests
+
+Is the mean house price (over all house styles) greater if a house is on the waterfront? To answer this question I will use the one-sample t-test, which determines whether the sample mean and the mean of the population differ. As the t-test assumes independence, the null hypothesis ($H_0$) and the alternative hypothesis ($H_1$) will be the following:
+
+$H_0:$ The mean house price over all styles is the same as the mean price of houses on a waterfront.
+
+$H_1:$ The mean house price is greater if a house is on the waterfront than the mean house price of all styles.
+
+```{r}
+prices_waterfront <- HousingData$price[HousingData$waterfront==1]
+
+#carry out t-test
+onesamplettest <- t.test(prices_waterfront, mu = meanprice, alternative = "greater")
+
+pval <- signif(onesamplettest$p.value, 4)
+pval
+```
+Upon carrying out the t-test in R, we get 
+a p-value of `r pval`. With a significance level of 5%, this means that there is strong evidence to reject the null hypothesis, i.e. we can assume the mean house price is in fact greater if a house is on the waterfront than the mean house price of all styles.
+
+```{r}
+#To get values for contingency table
+Fire_Pool <- nrow(HousingData[HousingData$fireplace==1 & HousingData$pool==1,])
+Fire_NoPool <- nrow(HousingData[HousingData$fireplace==1 & HousingData$pool==0,])
+NoFire_Pool <- nrow(HousingData[HousingData$fireplace==0 & HousingData$pool==1,])
+NoFire_NoPool <- nrow(HousingData[HousingData$fireplace==0 & HousingData$pool==0,])
+
+```
+
+Table 3: Contingency table showing relative frequencies for "Pool" and "No pool" according to
+whether a house has or has not got a fireplace.
+
+|             | Pool          | No Pool          | Total    |
+|-------------|---------------|------------------|----------|
+| Fireplace   |`r Fire_Pool`  |`r Fire_NoPool`   | `r fireplace_freq`|    
+| No Fireplace|`r NoFire_Pool`| `r NoFire_NoPool`| `r n-fireplace_freq`|
+|-------------|---------------|------------------|----------|
+| Total       |`r pool_freq`  |`r n-pool_freq`   | `r n`    |
+
+```{r}
+library(stats)
+library(DescTools)
+
+#Prepares rows of contingency table to be converted into table so can put into chisq.test function
+rows <- rbind(c(Fire_Pool, Fire_NoPool), c(NoFire_Pool, NoFire_NoPool))
+
+#Converts rows to table and adds row and column names
+Table3 <- as.table(rows)
+rownames(Table3) <- c("Fireplace", "No Fireplace")
+colnames(Table3) <- c("Pool", "No Pool")
+
+chisqtest <- chisq.test(Table3)
+chisqtest
+
+```
+To test whether a house having a fireplace is independent of whether it has a pool requires the chi-squared test of independence. Let the hypotheses be as follows:
+
+$H_0:$ A house having a fireplace is independent of whether it has a pool.
+
+$H_1:$ A house having a fireplace is dependent of whether it has a pool.
+
+According to the results, the chi-squared statistic (which measures how much the observed frequencies differ from the expected frequencies if the two variables are unrelated) came to be 13.855 which is higher than the critical value of 3.841, and the corresponding p-value was 0, meaning that at a 5% significance level there is overwhelming evidence to reject the null hypothesis and thus it is safe to assume that whether a house has a fireplace is in fact related to whether it has a pool.
+
+\newpage 
+
+# 4. Simple Linear Regression
+
+```{r include = TRUE}
+#get logarithms of price and area
+logprice <- log(HousingData$price)
+logsqft <- log(HousingData$sqft)
+
+#linear regression model
+lrmodel <- lm(logprice ~ logsqft, HousingData)
+
+lrmodeltable <- coef(summary(lrmodel))
+knitr::kable(lrmodeltable, caption="Table showing fitted linear regression model of  ln(price) as response variable and ln(sqft) as
+predictor variable.")
+
+```
+
+When a simple linear regression is performed with the logarithm of the house price as the response variable and the logarithm of the total area as the predictor variable, we get a p-value of 0. This means that the total area of the house is indeed a significant predictor of the house price. Furthermore, the coefficient from the output tells us that for every 1% increase in the total area, there is roughly a 1.03% increase in the house price.
+
+```{r include = TRUE, fig.height=4, fig.width=10}
+#to make scatter plots next to each other 
+par(mfrow=c(1,2))
+
+#scatter plot of data and the fitted model
+plot(logsqft, logprice, xlab = "Log of Total Area (sqft)", ylab = "Log of Price ($)", main = "Figure 6: Scatter Plot of Log of\n Total Area Against Log of\n Sale Price", cex.main = 0.9)
+abline(lrmodel, col = "red")
+
+#scatter plot showing residuals between the model and the data (including reference line for zero residuals)
+
+plot(fitted(lrmodel), residuals(lrmodel), xlab = "Fitted values", ylab = "Residuals", main = "Figure 7: Scatter Plot of Fitted Values\n Against Residuals", cex.main = 0.9)
+abline(h=0)
+```
+Figure 6 demonstrates the linear relationship between the log of the total area and the log of the price, and the way that the residuals are relatively evenly distributed above and below the reference line for zero residuals in Figure 7 suggest that the variances of the error terms are equal.  Additionally, both plots also show the presence of extreme values.
+
+# 5. Multiple Linear Regression
+
+Below is the full linear regression model of the log price against all the predictor variables (also using the log of the total area). For the qualitative variables, dummy variables were used to represent the data, with the first dummy variable removed from each column in order to avoid multicollinearity.
+
+```{r, include=TRUE}
+
+#change values for categorical data to factors
+categorical_vars <- HousingData[,6:9]
+categorical_vars$pool <- as.factor(categorical_vars$pool)
+categorical_vars$style <- as.factor(categorical_vars$style)
+categorical_vars$fireplace <- as.factor(categorical_vars$fireplace)
+categorical_vars$waterfront <- as.factor(categorical_vars$waterfront)
+
+#create dataframe for dummy variables
+dummies_df <- dummy_cols(categorical_vars, remove_first_dummy = TRUE)
+
+#create data frame to be put into full regression model
+reg_df <- cbind(logprice, logsqft, HousingData[,c(3:5, 10)],dummies_df[,5:13])
+colnames(reg_df) <- c("logprice", "Log_sqft", "Bedrooms", "Baths", "Age", "DOM", "Pool", "Townhouse", "New_Orleans", "French", "Cottage", "Colonial", "Acadian", "Fireplace", "Waterfront")
+
+
+#multiple linear regression model against all predictor variables
+full_model <- lm(logprice ~ ., data = reg_df)
+
+
+fullmodeltable <- coef(summary(full_model))
+knitr::kable(fullmodeltable, caption="Table showing multiple linear regression model of  ln(price) against all variables (i.e. full model).")
+```
+
+```{r}
+#get AIC of full model
+AIC(full_model)
+#perform stepwise selection for the AIC
+stepwise_selection <- stepAIC(full_model, direction = "backward")
+stepwise_selection$coefficients
+```
+
+From the full model, the p-values indicate that the total area, number of bathrooms, age, certain styles (townhouse, New Orleans, French, and cottage), presence of a fireplace, and presence of a waterfront, are statistically significant predictors of the sale price, as they are all less than 0.05. Surprisingly, the presence of a pool is not a significant predictor of price, as indicated by its p-value of 0.299, which fails to reach statistical significance. Furthermore, when stepwise selection for the AIC value is performed (which selects the model that resembles the true model the most from those available (1, p.99), it is the model with these exact variables which give the lowest AIC value. Thus, these variables can be used to produce a reduced model which is roughly as follows:
+
+\begin{align*}
+\ln(\text{Price}) &= 5.630 + 0.745(\ln(\text{sqft})) + 0.220(\text{Bathroom Number}) \\
+&\quad - 0.004(\text{Age}) + 0.284(\text{Townhouse}) + 0.368(\text{New Orleans}) \\
+&\quad + 0.147(\text{French}) + 0.134(\text{Cottage}) + 0.086(\text{Fireplace}) \\
+&\quad + 0.109(\text{Waterfront})
+\end{align*}
+
+whereby the quantitative variables are replaced by 1 if it is present, or 0 if not present.
+
+```{r}
+library(caret)
+
+# k fold cross validation 
+train_control <- trainControl(method = "cv", number = 3)
+full_model_cv <- train(logprice ~., data = reg_df, method = "lm", trControl = train_control, metric = "RMSE")
+reduced_model_cv <- train(stepwise_selection$call$formula, data = reg_df, method = "lm", trControl = train_control, metric = "RMSE")
+
+#Get RMSEs
+RMSE_full <- full_model_cv$results$RMSE
+RMSE_reduced <- reduced_model_cv$results$RMSE 
+RMSE_full
+RMSE_reduced # RMSE is higher for the reduced model
+
+length(full_model_cv$coefnames)-length(reduced_model_cv$coefnames) # but 5 predictors have been removed in the reduced model 
+
+#calculate AIC for each model                      
+full_model_AIC <- AIC(full_model_cv$finalModel)
+full_model_AIC
+reduced_model_AIC <- AIC(reduced_model_cv$finalModel) 
+reduced_model_AIC # hence AIC is improved (reduced) for the reduced model
+```
+Using a k-fold cross validation, we find that overall, the reduced model obtained following feature selection performs better than the full model.  This is because it results in a smaller AIC value (`r reduced_model_AIC` for the reduced model, and `r full_model_AIC` for the full model), despite the fact that the reduced model has a slightly higher RMSE than the full model (`r RMSE_reduced` for the reduced, `r RMSE_full` for the full). This is due to the fact that there are 5 less variables in the reduced model.
+
+# Conclusion
+In conclusion, there are many factors which affect house prices in the USA based on this data set, with the most prominent predictors being the total area, number of bathrooms, age, style of house, presence of a fireplace, and presence of a waterfront.
+
+\newpage 
+
+# Bibliography
+
+1. Upton G, Brawn D. *Data Analysis* [Internet]. First. Oxford: Oxford University Press; 2023 [cited 2024 Apr 17]. Available from: https://read.kortext.com/reader/pdf/2415060/iv
+  
+2. Kaplan J, Schlegel B. (2023). *fastDummies: Fast Creation of Dummy (Binary) Columns and Rows from Categorical Variables.* Version 1.7.1. URL: https://github.com/jacobkap/fastDummies.
+
+3. Venables WN, Ripley BD. (2002). *Modern Applied Statistics with S.* Fourth edition. New York: Springer. [ISBN 0-387-95457-0]. Available from: https://www.stats.ox.ac.uk/pub/MASS4/.
+
+4. R Core Team. (2023). *R: A Language and Environment for Statistical Computing.* R Foundation for Statistical Computing, Vienna, Austria. Available from: https://www.R-project.org/.
+
+5. Signorell A (2024). *DescTools: Tools for Descriptive Statistics*. R package version 0.99.54,
+  <https://CRAN.R-project.org/package=DescTools>.
+
+6. Kuhn, M. (2008). *Building Predictive Models in R Using the caret Package.* Journal of Statistical
+  Software, 28(5), 1–26. https://doi.org/10.18637/jss.v028.i05
