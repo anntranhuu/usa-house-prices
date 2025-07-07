@@ -54,7 +54,7 @@ This project investigates key factors influencing housing prices in Baton Rouge,
 📦USA-House-Price-Prediction/  
  ┣ 📄 USA House Price Prediction.pdf      ← Full report with methodology, analysis, and results  
  ┣ 📄 README.md             ← This file  
- ┗ 📁 code/                 ← R scripts and model development  
+ ┗ 📄 MA334-SP-7_code_2322761                 ← R script
 
 
 ---
