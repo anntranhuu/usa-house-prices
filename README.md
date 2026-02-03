@@ -2,7 +2,7 @@
 
 ## 📊 Project Overview
 
-This project investigates key factors influencing housing prices in Baton Rouge, Louisiana, using a dataset of 856 properties collected in 2005. The analysis includes data exploration, statistical testing, and predictive modeling using **simple** and **multiple linear regression** techniques. It was completed as part of my MSc in Applied Data Science and emphasises real-world statistical modeling, interpretation, and communication of insights.
+This project investigates key factors influencing housing prices in Baton Rouge, Louisiana, using a dataset of 856 properties collected in 2005. The analysis includes data exploration, statistical testing, and predictive modelling using **simple** and **multiple linear regression** techniques. It was completed as part of my MSc in Applied Data Science and emphasises real-world statistical modelling, interpretation, and communication of insights.
 
 ---
 
@@ -42,7 +42,7 @@ This project investigates key factors influencing housing prices in Baton Rouge,
 ## 🧠 What I Learned
 
 - How to apply statistical reasoning to real-world housing data  
-- Importance of feature transformation (e.g. log-scaling) for linear modeling  
+- Importance of feature transformation (e.g. log-scaling) for linear modelling  
 - Evaluating model fit and assumptions using residual plots  
 - Trade-offs between model complexity and performance (AIC vs. RMSE)  
 - Clear communication of technical findings through visualisations and narrative  
