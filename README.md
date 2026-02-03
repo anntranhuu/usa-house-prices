@@ -73,4 +73,4 @@ This project was completed in R. To reproduce the analysis:
 ## 🤝 Acknowledgements
 
 **Data Source**: Dr. Kelley Pace, Department of Finance, Louisiana State University  
-**Course**: Applied Data Science MSc, University of Essex (2023–2024)
+**Course**: Applied Data Science MSc, University of Essex (2024–2025)
